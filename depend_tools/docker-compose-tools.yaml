@@ -1,0 +1,34 @@
+# docker-compose up -f docker-compose-tools.yaml
+
+version: "3"
+
+services:
+  mysql8:
+    platform: linux/amd64 # 不加这行会报:ERROR: no matching manifest for linux/arm64/v8 in the manifest list entries
+    container_name: mysql8
+    image: mysql:8.0 # 镜像会从docker hub中拉取。地址: https://hub.docker.com/_/mysql?
+    ports:
+      - "3306:3306" # 冒号左边的宿主机的端口，右边的是容器的端口
+    restart: always # 如果容器停止，请始终重新启动容器。 如果是手动停止的，只有在Docker daemon重启或者容器本身手动重启时才会重启。https://docs.docker.com/config/containers/start-containers-automatically/
+    volumes:
+      - /usr/local/mysql/data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456 # root账号的密码，记得把Django settings.py里面mysql配置项的密码和这个对应起来
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - /usr/local/redis/data:/data # /usr/local/redis/data是你宿主机的路径; /data是容器内的路径，容器内的redis会把需要持久化的数据都保存到/data目录下
+      - ./redis.conf:/etc/redis/redis.conf # redis.conf这个文件已经准备好了，可以放到这个路径，也可以自己修改，比如放到项目路径中
+    restart: always
+    command: redis-server /etc/redis/redis.conf
+
+  memcached:
+    container_name: memcached
+    image: memcached:latest
+    ports:
+      - "11211:11211"
+    restart: always
