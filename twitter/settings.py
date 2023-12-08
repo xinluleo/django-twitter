@@ -40,6 +40,10 @@ INSTALLED_APPS = [
 
     # third party
     'rest_framework',
+
+    # project apps
+    'twitter.accounts',
+    'tweets',
 ]
 
 REST_FRAMEWORK = {
