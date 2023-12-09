@@ -1,4 +1,4 @@
-from django.test import TestCase
+from testing.testcases import TestCase
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 
@@ -11,16 +11,11 @@ LOGIN_STATUS_URL = '/api/accounts/login_status/'
 class AccountAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = self.createUser(
+        self.user = self.create_user(
             username='admin',
             email='admin@gmail.com',
             password='correct password',
         )
-
-    def createUser(self, username, email, password):
-        # 不能写成User.objects.create()
-        # 因为密码需要加密，username和email需要小写化
-        return User.objects.create_user(username, email, password)
 
     def test_login(self):
         # 每个测试函数必须以test_开头，才会被自动调用进行测试
