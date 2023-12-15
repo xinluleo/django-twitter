@@ -1,8 +1,10 @@
 from comments.models import Comment
 from django.test import TestCase as DjangoTestCase
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from tweets.models import Tweet
 from rest_framework.test import APIClient
+from likes.models import Like
 
 
 class TestCase(DjangoTestCase):
@@ -43,3 +45,12 @@ class TestCase(DjangoTestCase):
             tweet=tweet,
             content=content,
         )
+
+    def create_like(self, user, target):
+        # 这里的 target 可以是 comment 也可以是 tweet
+        instance, _  = Like.objects.get_or_create(
+            content_type=ContentType.objects.get_for_model(target.__class__),
+            object_id=target.id,
+            user=user,
+        )
+        return instance
