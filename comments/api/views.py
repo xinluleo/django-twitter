@@ -65,7 +65,7 @@ class CommentViewSet(viewsets.GenericViewSet):
         # save() 方法会调用 CommentSerializerForCreate.create()
         comment = serializer.save()
         return Response(
-            CommentSerializer(comment).data,
+            CommentSerializer(comment, context={'request': request}).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -86,7 +86,7 @@ class CommentViewSet(viewsets.GenericViewSet):
         # save() 方法会调用 CommentSerializerForCreate.update()
         comment = serializer.save()
         return Response(
-            CommentSerializer(comment).data,
+            CommentSerializer(comment, context={'request': request}).data,
             status=status.HTTP_200_OK,
         )
 
