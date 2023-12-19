@@ -154,7 +154,7 @@ class CommentApiTests(TestCase):
 
         # test newsfeed list api
         self.create_comment(self.dongxie, tweet)
-        self.create_newsfeed(self.linghu, tweet)
+        self.create_newsfeed(self.dongxie, tweet)
         response = self.dongxie_client.get(NEWSFEED_LIST_API)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['newsfeeds'][0]['tweet']['comments_count'], 2)
