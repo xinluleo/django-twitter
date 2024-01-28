@@ -1,11 +1,13 @@
 from testing.testcases import TestCase
 from rest_framework.test import APIClient
 from twitter.accounts.models import UserProfile
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 LOGIN_URL = '/api/accounts/login/'
 LOGOUT_URL = '/api/accounts/logout/'
 SIGNUP_URL = '/api/accounts/signup/'
 LOGIN_STATUS_URL = '/api/accounts/login_status/'
+USER_PROFILE_DETAIL_API = '/api/profiles/{}/'
 
 
 class AccountAPITest(TestCase):
@@ -56,7 +58,7 @@ class AccountAPITest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotEquals(response.data['user'], None)
         self.assertEqual(response.data['user']['username'], 'admin')
-        self.assertEqual(response.data['user']['email'], 'admin@gmail.com')
+        self.assertEqual(response.data['user']['id'], self.user.id)
         # 验证登录状态为已经登录
         response = self.client.get(LOGIN_STATUS_URL)
         self.assertEqual(response.data['has_logged_in'], True)
@@ -125,3 +127,48 @@ class AccountAPITest(TestCase):
         # 验证用户已经登入
         response = self.client.get(LOGIN_STATUS_URL)
         self.assertEqual(response.data['has_logged_in'], True)
+
+
+class UserProfileAPITest(TestCase):
+    def test_update(self):
+        linghu, linghu_client = self.create_user_and_client('linghu')
+        p = linghu.profile
+        p.nickname = 'old nickname'
+        p.save()
+        url = USER_PROFILE_DETAIL_API.format(p.id)
+
+        # 匿名不可以更新
+        response = self.anonymous_client.put(url, {'nickname': 'a new nickname'})
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual('Authentication credentials were not provided.' in response.data['detail'], True)
+
+        # 别人不可以更新
+        _, dongxie_client = self.create_user_and_client('dongxie')
+        response = dongxie_client.put(url, {'nickname': 'a new nickname'})
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual('You do not have permission to access this object' in response.data['detail'], True)
+
+        p.refresh_from_db()
+        self.assertEqual(p.nickname, 'old nickname')
+
+        # 自己可以更新
+        response = linghu_client.put(url, {'nickname': 'a new nickname'})
+        self.assertEqual(response.status_code, 200)
+        p.refresh_from_db()
+        self.assertEqual(p.nickname, 'a new nickname')
+
+        # 更新avatar
+        response = linghu_client.put(url, {
+            'avatar': SimpleUploadedFile(
+                name='my-avatar.jpg',
+                content=str.encode('a fake image'),
+                content_type='image/jpeg',
+            ),
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual('avatar' in response.data['avatar'], True)
+        p.refresh_from_db()
+        self.assertIsNotNone(p.avatar)
+
+
+
