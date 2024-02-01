@@ -12,6 +12,7 @@ USER_PROFILE_DETAIL_API = '/api/profiles/{}/'
 
 class AccountAPITest(TestCase):
     def setUp(self):
+        self.clear_cache()
         self.client = APIClient()
         self.user = self.create_user(
             username='admin',
@@ -130,6 +131,10 @@ class AccountAPITest(TestCase):
 
 
 class UserProfileAPITest(TestCase):
+
+    def setUp(self):
+        self.clear_cache()
+
     def test_update(self):
         linghu, linghu_client = self.create_user_and_client('linghu')
         p = linghu.profile
