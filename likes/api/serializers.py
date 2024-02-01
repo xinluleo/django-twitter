@@ -1,4 +1,4 @@
-from twitter.accounts.api.serializers import UserSerializerForLike
+from accounts.api.serializers import UserSerializerForLike
 from comments.models import Comment
 from django.contrib.contenttypes.models import ContentType
 from likes.models import Like

@@ -1,4 +1,4 @@
-from twitter.accounts.api.serializers import UserSerializerForFriendship
+from accounts.api.serializers import UserSerializerForFriendship
 from friendships.models import Friendship
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError

@@ -3,7 +3,7 @@ from likes.services import LikeService
 from likes.api.serializers import LikeSerializer
 from rest_framework import serializers
 from tweets.models import Tweet
-from twitter.accounts.api.serializers import UserSerializerForTweet
+from accounts.api.serializers import UserSerializerForTweet
 from tweets.constants import TWEET_PHOTOS_UPLOAD_LIMIT
 from rest_framework.exceptions import ValidationError
 from tweets.services import TweetService

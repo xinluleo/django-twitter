@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'notifications',
 
     # project apps
-    'twitter.accounts',
+    'accounts',
     'tweets',
     'friendships',
     'newsfeeds',

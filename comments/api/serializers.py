@@ -2,7 +2,7 @@ from comments.models import Comment
 from likes.services import LikeService
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from twitter.accounts.api.serializers import UserSerializerForComment
+from accounts.api.serializers import UserSerializerForComment
 from tweets.models import Tweet
 
 

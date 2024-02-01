@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers, exceptions
-from twitter.accounts.models import UserProfile
+from accounts.models import UserProfile
 
 
 class UserSerializer(serializers.ModelSerializer):
