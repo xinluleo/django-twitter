@@ -1,6 +1,6 @@
 from testing.testcases import TestCase
 from rest_framework.test import APIClient
-from twitter.accounts.models import UserProfile
+from accounts.models import UserProfile
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 LOGIN_URL = '/api/accounts/login/'

@@ -3,8 +3,8 @@ from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from twitter.accounts.models import UserProfile
-from twitter.accounts.api.serializers import (
+from accounts.models import UserProfile
+from accounts.api.serializers import (
     UserSerializer,
     UserSerializerWithProfile,
     LoginSerializer,

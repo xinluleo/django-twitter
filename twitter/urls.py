@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework import routers
-from twitter.accounts.api.views import UserViewSet, AccountViewSet, UserProfileViewSet
+from accounts.api.views import UserViewSet, AccountViewSet, UserProfileViewSet
 from tweets.api.views import TweetViewSet
 from friendships.api.views import FriendshipViewSet
 from newsfeeds.api.views import NewsFeedViewSet

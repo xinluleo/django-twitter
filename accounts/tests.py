@@ -1,4 +1,4 @@
-from twitter.accounts.models import UserProfile
+from accounts.models import UserProfile
 from testing.testcases import TestCase
 
 
