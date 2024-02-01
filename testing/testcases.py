@@ -1,5 +1,6 @@
 from comments.models import Comment
 from django.test import TestCase as DjangoTestCase
+from django.core.cache import caches
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from newsfeeds.models import NewsFeed
@@ -9,6 +10,9 @@ from likes.models import Like
 
 
 class TestCase(DjangoTestCase):
+
+    def clear_cache(self):
+        caches['testing'].clear()
 
     @property
     def anonymous_client(self):
