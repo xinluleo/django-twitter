@@ -34,8 +34,6 @@ class FollowerSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
     def get_has_followed(self, obj):
         if self.context['request'].user.is_anonymous:
             return False
-        # <TODO> 这个部分会对每个 object 都去执行一次 SQL 查询，速度会很慢，如何优化呢？
-        # 我们将在后序的课程中解决这个问题
         return obj.from_user_id in self.following_user_id_set
 
 
@@ -50,8 +48,6 @@ class FollowingSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
     def get_has_followed(self, obj):
         if self.context['request'].user.is_anonymous:
             return False
-        # <TODO> 这个部分会对每个 object 都去执行一次 SQL 查询，速度会很慢，如何优化呢？
-        # 我们将在后序的课程中解决这个问题
         return obj.to_user_id in self.following_user_id_set
 
 
