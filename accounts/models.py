@@ -1,5 +1,9 @@
+from accounts.listeners import profile_changed
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import pre_delete, post_save
+from utils.memcached_listeners import invalidate_object_cache
+
 
 class UserProfile(models.Model):
     # One2One field 会创建一个 unique index，确保不会有多个 UserProfile 指向同一个 User
@@ -35,3 +39,9 @@ def get_profile(user):
 
 # 给 User Model 增加了一个 profile 的 property 方法用于快捷访问
 User.profile = property(get_profile)
+
+pre_delete.connect(invalidate_object_cache, sender=User)
+post_save.connect(invalidate_object_cache, sender=User)
+
+pre_delete.connect(profile_changed, sender=UserProfile)
+post_save.connect(profile_changed, sender=UserProfile)
