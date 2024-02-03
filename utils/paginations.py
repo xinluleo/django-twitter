@@ -1,5 +1,6 @@
 from rest_framework.pagination import BasePagination
 from rest_framework.response import Response
+from dateutil import parser
 
 
 class EndlessPagination(BasePagination):
@@ -12,7 +13,38 @@ class EndlessPagination(BasePagination):
     def to_html(self):
         pass
 
+    def paginate_ordered_list(self, reverse_ordered_list, request):
+        if 'created_at__gt' in request.query_params:
+            created_at__gt = parser.isoparse(request.query_params['created_at__gt'])
+            objects = []
+            for item in reverse_ordered_list:
+                if item.created_at > created_at__gt:
+                    objects.append(item)
+                else:
+                    break
+            self.has_next_page = False;
+            return objects
+
+        index = 0
+        if 'created_at__lt' in request.query_params:
+            created_at__lt = parser.isoparse(request.query_params['created_at__lt'])
+            for index, item in enumerate(reverse_ordered_list):
+                if item.created_at < created_at__lt:
+                    # 找到第一个 created_at 时间小于 created_at__lt 的 item。
+                    # 因为数组是按照 created_at 降序排列的，所以之后的 item 都有更早的 created_at 时间。
+                    break
+            else:
+                # 如果没找到满足条件 created_at__lt 的 item，那么就返回空数组
+                reverse_ordered_list = []
+
+        self.has_next_page = len(reverse_ordered_list) > index + self.page_size
+        return reverse_ordered_list[index: index + self.page_size]
+
     def paginate_queryset(self, queryset, request, view=None):
+        # Handle tweet cached list case
+        if type(queryset) == list:
+            return self.paginate_ordered_list(queryset, request)
+
         if 'created_at__gt' in request.query_params:
             # min_id 用于下拉刷新的时候加载最新的内容进来
             # 为了简便起见，下拉刷新不做翻页机制，直接加载所有更新的数据
