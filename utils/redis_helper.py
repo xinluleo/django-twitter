@@ -45,3 +45,31 @@ class RedisHelper(object):
         conn.lpush(key, serialized_obj)
         conn.ltrim(key, 0, settings.REDIS_LIST_LENGTH_LIMIT - 1)
 
+    @classmethod
+    def redis_key_for_count(cls, obj, attr):
+        return '{}.{}:{}'.format(obj.__class__.__name__,  # e.g. Tweet
+                                 attr,  # e.g. likes_count
+                                 obj.id)
+
+    @classmethod
+    def incr_count(cls, obj, attr):
+        conn = RedisClient.get_connection()
+        key = cls.redis_key_for_count(obj, attr)
+        return conn.incr(key)
+
+    @classmethod
+    def decr_count(cls, obj, attr):
+        conn = RedisClient.get_connection()
+        key = cls.redis_key_for_count(obj, attr)
+        return conn.decr(key)
+
+    @classmethod
+    def get_count(cls, obj, attr):
+        conn = RedisClient.get_connection()
+        key = cls.redis_key_for_count(obj, attr)
+        count = conn.get(key)
+        if count is None:
+            obj.refresh_from_db()
+            count = getattr(obj, attr)
+            conn.set(key, count)
+        return int(count)

@@ -221,3 +221,46 @@ class LikeApiTests(TestCase):
         self.assertEqual(len(response.data['likes']), 2)
         self.assertEqual(response.data['likes'][0]['user']['id'], self.linghu.id)
         self.assertEqual(response.data['likes'][1]['user']['id'], self.dongxie.id)
+
+    def test_likes_count_in_tweet(self):
+        tweet = self.create_tweet(self.linghu)
+        data = {'content_type': 'tweet', 'object_id': tweet.id}
+        self.dongxie_client.post(LIKE_BASE_URL, data)
+
+        tweet_url = TWEET_DETAIL_URL.format(tweet.id)
+        response = self.linghu_client.get(tweet_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['likes_count'], 1)
+        tweet.refresh_from_db()
+        self.assertEqual(tweet.likes_count, 1)
+
+        # cancel the like.
+        self.dongxie_client.post(LIKE_CANCEL_URL, data)
+        response = self.linghu_client.get(tweet_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['likes_count'], 0)
+        tweet.refresh_from_db()
+        self.assertEqual(tweet.likes_count, 0)
+
+    def test_likes_count_in_comment(self):
+        tweet = self.create_tweet(self.linghu)
+        comment = self.create_comment(self.dongxie, tweet)
+        data = {'content_type': 'comment', 'object_id': comment.id}
+        self.dongxie_client.post(LIKE_BASE_URL, data)
+
+        tweet_url = TWEET_DETAIL_URL.format(tweet.id)
+        response = self.linghu_client.get(tweet_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments'][0]['likes_count'], 1)
+        comment.refresh_from_db()
+        self.assertEqual(comment.likes_count, 1)
+
+        # cancel the like.
+        self.dongxie_client.post(LIKE_CANCEL_URL, data)
+        response = self.linghu_client.get(tweet_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments'][0]['likes_count'], 0)
+        comment.refresh_from_db()
+        self.assertEqual(comment.likes_count, 0)
+
+
