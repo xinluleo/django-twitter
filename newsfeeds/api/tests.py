@@ -3,7 +3,8 @@ from friendships.models import Friendship
 from rest_framework.test import APIClient
 from testing.testcases import TestCase
 from utils.paginations import EndlessPagination
-
+from django.conf import settings
+from newsfeeds.services import NewsFeedService
 
 NEWSFEEDS_URL = '/api/newsfeeds/'
 POST_TWEETS_URL = '/api/tweets/'
@@ -158,3 +159,55 @@ class NewsFeedApiTests(TestCase):
         response = self.dongxie_client.get(NEWSFEEDS_URL)
         results = response.data['results']
         self.assertEqual(results[0]['tweet']['content'], 'content2')
+
+    def _paginate_to_get_newsfeeds(self, client):
+        response = client.get(NEWSFEEDS_URL)
+        results = response.data['results']
+        while response.data['has_next_page']:
+            next_url = NEWSFEEDS_URL + '?created_at__lt=' + results[-1]['created_at']
+            response = client.get(next_url)
+            results.extend(response.data['results'])
+        return results
+
+    def test_redis_list_limit(self):
+        list_limit = settings.REDIS_LIST_LENGTH_LIMIT
+        page_size = 20
+
+        users = [self.create_user('user{}'.format(i)) for i in range(5)]
+        newsfeeds = []
+        for i in range(list_limit + page_size):
+            tweet = self.create_tweet(user=users[i % 5])
+            newsfeed = self.create_newsfeed(self.linghu, tweet)
+            newsfeeds.append(newsfeed)
+        newsfeeds = newsfeeds[::-1]
+
+        # only cached list_limit number of newsfeeds
+        cached_newsfeeds = NewsFeedService.get_cached_newsfeeds(self.linghu.id)
+        self.assertEqual(len(cached_newsfeeds), list_limit)
+        query = NewsFeed.objects.filter(user=self.linghu)
+        self.assertEqual(query.count(), list_limit + page_size)
+
+        results = self._paginate_to_get_newsfeeds(self.linghu_client)
+        self.assertEqual(len(results), list_limit + page_size)
+        for i in range(list_limit + page_size):
+            self.assertEqual(newsfeeds[i].id, results[i]['id'])
+
+        # a followed user posted a new tweet
+        self.create_friendship(self.linghu, self.dongxie)
+        new_tweet = self.create_tweet(self.linghu)
+        NewsFeedService.fanout_to_followers(new_tweet)
+
+        def _test_newsfeeds_after_new_post():
+            results = self._paginate_to_get_newsfeeds(self.linghu_client)
+            self.assertEqual(len(results), list_limit + page_size + 1)
+            self.assertEqual(results[0]['tweet']['id'], new_tweet.id)
+            for i in range(1, list_limit + page_size + 1):
+                self.assertEqual(newsfeeds[i - 1].id, results[i]['id'])
+
+        _test_newsfeeds_after_new_post()
+
+        # cache expired
+        self.clear_cache()
+
+        # fetch newsfeed again should still return the same results
+        _test_newsfeeds_after_new_post()
