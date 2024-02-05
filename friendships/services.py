@@ -9,7 +9,7 @@ cache = caches['testing'] if settings.TESTING else caches['default']
 class FriendshipsService(object):
 
     @classmethod
-    def get_followers(cls, user):
+    def get_followers_ids(cls, user_id):
         # 错误的写法一
         # 这种写法会导致 N + 1 Queries 的问题
         # 即，filter 出所有 friendships 耗费了一次 Query
@@ -33,9 +33,9 @@ class FriendshipsService(object):
         # 正确的写法二，使用 prefetch_related，会自动执行成两条语句，用 In Query 查询
         # 实际执行的 SQL 查询和上面是一样的，一共两条 SQL Queries
         friendships = Friendship.objects.filter(
-            to_user=user,
+            to_user_id=user_id,
         ).prefetch_related('from_user')
-        return [friendship.from_user for friendship in friendships]
+        return [friendship.from_user.id for friendship in friendships]
 
     @classmethod
     def get_following_user_id_set(cls, from_user_id):
