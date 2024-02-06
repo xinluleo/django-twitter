@@ -18,6 +18,8 @@ from django.contrib.auth import (
 )
 from rest_framework.permissions import IsAuthenticated
 from utils.permissions import IsObjectOwner
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -32,20 +34,30 @@ class UserViewSet(viewsets.ModelViewSet):
 class AccountViewSet(viewsets.ViewSet):
     serializer_class = SignupSerializer
 
-    @action(methods=['GET'], detail=False)
-    def login_status(self, request):
-        data = {"has_logged_in": request.user.is_authenticated}
-        if request.user.is_authenticated:
-            data['user'] = UserSerializer(request.user).data
+    @action(methods=['POST'], detail=False)
+    @method_decorator(ratelimit(key='ip', rate='3/s', method='POST', block=True))
+    def signup(self, request):
+        serializer = SignupSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'success': False,
+                'message': 'Please check input',
+                'errors': serializer.errors,
+            }, status=400)
 
-        return Response(data)
+        user = serializer.save()
+
+        # Create UserProfile object
+        _ = user.profile
+
+        django_login(request, user)
+        return Response({
+            'success': True,
+            'user': UserSerializer(instance=user).data,
+        }, status=201)
 
     @action(methods=['POST'], detail=False)
-    def logout(self, request):
-        django_logout(request)
-        return Response({'success': True})
-
-    @action(methods=['POST'], detail=False)
+    @method_decorator(ratelimit(key='ip', rate='3/s', method='POST', block=True))
     def login(self, request):
         # get username and password from request
         serializer = LoginSerializer(data=request.data)
@@ -72,26 +84,19 @@ class AccountViewSet(viewsets.ViewSet):
             'user': UserSerializer(instance=user).data,
         })
 
+    @action(methods=['GET'], detail=False)
+    @method_decorator(ratelimit(key='ip', rate='3/s', method='GET', block=True))
+    def login_status(self, request):
+        data = {"has_logged_in": request.user.is_authenticated}
+        if request.user.is_authenticated:
+            data['user'] = UserSerializer(request.user).data
+
+        return Response(data)
+
     @action(methods=['POST'], detail=False)
-    def signup(self, request):
-        serializer = SignupSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({
-                'success': False,
-                'message': 'Please check input',
-                'errors': serializer.errors,
-            }, status=400)
-
-        user = serializer.save()
-
-        # Create UserProfile object
-        _ = user.profile
-
-        django_login(request, user)
-        return Response({
-            'success': True,
-            'user': UserSerializer(instance=user).data,
-        }, status=201)
+    def logout(self, request):
+        django_logout(request)
+        return Response({'success': True})
 
 
 class UserProfileViewSet(

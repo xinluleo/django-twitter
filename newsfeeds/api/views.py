@@ -1,11 +1,11 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from newsfeeds.models import NewsFeed
 from newsfeeds.api.serializers import NewsFeedSerializer
 from utils.paginations import EndlessPagination
 from newsfeeds.services import NewsFeedService
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 
 
 class NewsFeedViewSet(viewsets.GenericViewSet):
@@ -19,6 +19,7 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
     #     # 但是一般最好还是按照 NewsFeed.objects.filter 的方式写，更清晰直观
     #     return NewsFeed.objects.filter(user=self.request.user)
 
+    @method_decorator(ratelimit(key='user', rate='5/s', method='GET', block=True))
     def list(self, request):
         cached_newsfeeds = NewsFeedService.get_cached_newsfeeds(request.user.id)
 
