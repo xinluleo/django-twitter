@@ -63,7 +63,7 @@ class NewsFeedTaskTests(TestCase):
         self.dongxie = self.create_user('dongxie')
 
     def test_fanout_main_task(self):
-        # create 1st tweet that will be fanned out to dongxie.
+        # create 1st tweet that will be fanned out to dongxie and linghu.
         tweet = self.create_tweet(self.linghu)
         self.create_friendship(self.dongxie, self.linghu)
         msg = fanout_newsfeeds_main_task(tweet.id, self.linghu.id)
@@ -72,7 +72,7 @@ class NewsFeedTaskTests(TestCase):
         cached_list = NewsFeedService.get_cached_newsfeeds(self.linghu.id)
         self.assertEqual(len(cached_list), 1)
 
-        # create 2nd tweet that will be fanned out to dongxie and 2 new users.
+        # create 2nd tweet that will be fanned out to dongxie, linghu and 2 new users.
         for i in range(2):
             user = self.create_user('user{}'.format(i))
             self.create_friendship(user, self.linghu)
@@ -83,13 +83,13 @@ class NewsFeedTaskTests(TestCase):
         cached_list = NewsFeedService.get_cached_newsfeeds(self.linghu.id)
         self.assertEqual(len(cached_list), 2)
 
-        # create 3rd tweet that will be fanned out to all 4 users (3 existing and 1 new).
+        # create 3rd tweet that will be fanned out to all 5 users.
         user = self.create_user('another user')
         self.create_friendship(user, self.linghu)
         tweet = self.create_tweet(self.linghu, 'tweet 3')
         msg = fanout_newsfeeds_main_task(tweet.id, self.linghu.id)
         self.assertEqual(msg, '4 newsfeeds going to fanout, 2 batches created.')
-        self.assertEqual(8 + 3, NewsFeed.objects.count())
+        self.assertEqual(6 + 5, NewsFeed.objects.count())
         cached_list = NewsFeedService.get_cached_newsfeeds(self.linghu.id)
         self.assertEqual(len(cached_list), 3)
         cached_list = NewsFeedService.get_cached_newsfeeds(self.dongxie.id)
