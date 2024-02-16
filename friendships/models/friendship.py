@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from accounts.services import UserService
 from django.db.models.signals import pre_delete, post_save
 from friendships.listeners import friendship_changed
 from utils.memcached_helper import MemcachedHelper

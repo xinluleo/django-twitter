@@ -1,10 +1,8 @@
 from django.conf import settings
 from django.core.cache import caches
-from friendships.models import Friendship
+from friendships.models import Friendship, HBaseFollowing, HBaseFollower
 from twitter.cache import FOLLOWINGS_PATTERN
 from gatekeeper.models import GateKeeper
-from friendships.hbase_models import HBaseFollowing, HBaseFollower
-
 import time
 
 cache = caches['testing'] if settings.TESTING else caches['default']
