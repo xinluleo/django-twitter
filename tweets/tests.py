@@ -12,7 +12,7 @@ from utils.redis_serializers import DjangoModelSerializer
 
 class TweetTests(TestCase):
     def setUp(self):
-        self.clear_cache()
+        super(TweetTests, self).setUp()
         self.linghu = self.create_user('linghu')
         self.tweet = self.create_tweet(self.linghu, content="linghu's test tweet")
 

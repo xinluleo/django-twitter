@@ -12,7 +12,7 @@ NEWSFEED_LIST_URL = '/api/newsfeeds/'
 class LikeApiTests(TestCase):
 
     def setUp(self):
-        self.clear_cache()
+        super(LikeApiTests, self).setUp()
         self.linghu, self.linghu_client = self.create_user_and_client(username='linghu')
         self.dongxie, self.dongxie_client = self.create_user_and_client(username='dongxie')
 
