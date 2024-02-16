@@ -12,7 +12,7 @@ USER_PROFILE_DETAIL_API = '/api/profiles/{}/'
 
 class AccountAPITest(TestCase):
     def setUp(self):
-        self.clear_cache()
+        super(AccountAPITest, self).setUp()
         self.client = APIClient()
         self.user = self.create_user(
             username='admin',

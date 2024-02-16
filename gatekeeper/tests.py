@@ -5,7 +5,7 @@ from gatekeeper.models import GateKeeper
 class GateKeeperTest(TestCase):
 
     def setUp(self):
-        self.clear_cache()
+        super(GateKeeperTest, self).setUp()
 
     def test_get(self):
         gk = GateKeeper.get('gk_name')

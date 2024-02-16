@@ -10,7 +10,7 @@ import time
 class FriendshipsServiceTest(TestCase):
 
     def setUp(self):
-        self.clear_cache()
+        super(FriendshipsServiceTest, self).setUp()
         self.linghu = self.create_user('linghu')
         self.dongxie = self.create_user('dongxie')
 
@@ -19,16 +19,14 @@ class FriendshipsServiceTest(TestCase):
         user2 = self.create_user('user2')
 
         for to_user in [user1, user2, self.dongxie]:
-            Friendship.objects.create(from_user=self.linghu, to_user=to_user)
-        FriendshipsService.invalidate_following_cache(self.linghu.id)
+            self.create_friendship(from_user=self.linghu, to_user=to_user)
 
         user_id_set = FriendshipsService.get_following_user_id_set(self.linghu.id)
-        self.assertEqual(user_id_set, {user1.id, user2.id, self.dongxie.id})
+        self.assertSetEqual(user_id_set, {user1.id, user2.id, self.dongxie.id})
 
-        Friendship.objects.filter(from_user=self.linghu, to_user=self.dongxie).delete()
-        FriendshipsService.invalidate_following_cache(self.linghu.id)
+        FriendshipsService.unfollow(self.linghu.id, self.dongxie.id)
         user_id_set = FriendshipsService.get_following_user_id_set(self.linghu.id)
-        self.assertEqual(user_id_set, {user1.id, user2.id})
+        self.assertSetEqual(user_id_set, {user1.id, user2.id})
 
 
 class HBaseTest(TestCase):
